@@ -1,106 +1,91 @@
-use std::cell::RefCell;
-use std::vec::Vec;
+use std::{cell::RefCell, collections::BTreeMap};
 
-use candid::{CandidType, Deserialize};
-use ic_cdk_macros::{init, post_upgrade, pre_upgrade, query, update};
-use ic_stable_memory::{
-    derive::{CandidAsDynSizeBytes, StableType},
-    retrieve_custom_data, stable_memory_init, stable_memory_post_upgrade,
-    stable_memory_pre_upgrade, store_custom_data, SBox,
-};
-// Структура для представления кадров
-#[derive(CandidType, Deserialize, StableType, CandidAsDynSizeBytes, Debug, Clone)]
-struct Frame {
-    id: u32,
-    // Добавьте другие поля, если необходимо
-}
+use candid::CandidType;
+use serde::{Deserialize, Serialize};
 
-// Структура для состояния
-#[derive(CandidType, Deserialize, StableType, CandidAsDynSizeBytes, Debug, Clone)]
-struct State {
-    counter: u32,
-    frames: Vec<u8>, // Новое поле frames
-}
-
-impl Default for State {
-    fn default() -> Self {
-        State { counter: 0, frames: Vec::new() }
-    }
-}
+type FrameStore = BTreeMap<usize, Frame>;
 
 thread_local! {
-    static STATE: RefCell<Option<State>> = RefCell::default();
+    pub static STATE: RefCell<FrameStore> = RefCell::default();
 }
 
-#[init]
-fn init() {
-    stable_memory_init();
-
-    STATE.with(|s| {
-        *s.borrow_mut() = Some(State::default());
-    });
+#[derive(CandidType, Serialize, Deserialize, Clone)]
+pub struct Frame {
+    id: usize,
+    image_url: String,
+    top: usize,
+    left: usize,
+    width: usize,
+    height: usize,
+    children_ids: Option<Vec<usize>>,
 }
 
-#[pre_upgrade]
-fn pre_upgrade() {
-    let state = STATE.with(|s| s.borrow_mut().take().unwrap());
-    let boxed_state = SBox::new(state).expect("Out of memory");
-
-    store_custom_data::<State>(0, boxed_state);
-    stable_memory_pre_upgrade().expect("Out of memory");
+#[ic_cdk::pre_upgrade]
+pub fn pre_upgrade() {
+    let serialized_frame_store =
+        serde_cbor::to_vec(&STATE.with(|state| state.borrow().clone())).unwrap_or_default();
+    ic_cdk::storage::stable_save((serialized_frame_store,))
+        .expect("Failed to save data to stable storage")
 }
 
-#[post_upgrade]
-fn post_upgrade() {
-    stable_memory_post_upgrade();
-
-    let state = retrieve_custom_data::<State>(0).unwrap().into_inner();
-    STATE.with(|s: &RefCell<Option<State>>| {
-        *s.borrow_mut() = Some(state);
-    });
+#[ic_cdk::post_upgrade]
+pub fn post_upgrade() {
+    let (serialized_frame_store,): (Vec<u8>,) =
+        ic_cdk::storage::stable_restore().unwrap_or_default();
+    let deserialized_frame_store: FrameStore =
+        serde_cbor::from_slice(&serialized_frame_store).unwrap_or_default();
+    STATE.with(|state| state.borrow_mut().extend(deserialized_frame_store))
 }
 
-#[query]
-fn get() -> u32 {
-    STATE.with(|s: &RefCell<Option<State>>| s.borrow().as_ref().unwrap().counter)
+#[ic_cdk::update]
+pub fn insert_frame(frame: Frame) -> usize {
+    let id = STATE.with(|state| state.borrow().len()).wrapping_add(1);
+    STATE.with(|state| state.borrow_mut().insert(id, frame));
+    id
 }
 
-#[update]
-fn inc() {
-    STATE.with(|s: &RefCell<Option<State>>| s.borrow_mut().as_mut().unwrap().counter += 1)
+#[ic_cdk::query]
+pub fn get_frame_by_id(id: usize) -> Option<Frame> {
+    STATE.with(|state| state.borrow().get(&id).cloned())
 }
 
-#[update]
-fn set(value: u32) {
-    STATE.with(|s: &RefCell<Option<State>>| s.borrow_mut().as_mut().unwrap().counter = value)
+#[derive(CandidType, Deserialize)]
+pub struct FrameWithOptionalFields {
+    image_url: Option<String>,
+    top: Option<usize>,
+    left: Option<usize>,
+    width: Option<usize>,
+    height: Option<usize>,
+    children_ids: Option<Vec<usize>>,
 }
 
-//// Функция запроса для получения списка всех кадров
-//#[query]
-//fn get_all_frames() -> Vec<Frame> {
-//    STATE.with(|s: &RefCell<Option<State>>| {
-//        s.borrow().as_ref().unwrap().frames.clone()
-//    })
-//}
+#[ic_cdk::update]
+pub fn update_fields_in_frame_by_id(id: usize, frame_with_optional_fields: FrameWithOptionalFields) {
+    STATE.with(|state| {
+        state.borrow_mut().entry(id).and_modify(|frame| {
+            if let Some(image_url) = frame_with_optional_fields.image_url {
+                frame.image_url = image_url
+            }
+            if let Some(top) = frame_with_optional_fields.top {
+                frame.top = top
+            }
+            if let Some(left) = frame_with_optional_fields.left {
+                frame.left = left
+            }
+            if let Some(width) = frame_with_optional_fields.width {
+                frame.width = width
+            }
+            if let Some(height) = frame_with_optional_fields.height {
+                frame.height = height
+            }
+            frame.children_ids = frame_with_optional_fields.children_ids
+        });
+    })
+}
 
-//// Функция запроса для получения кадра по идентификатору
-//#[query]
-//fn get_frame_by_id(id: u32) -> Option<Frame> {
-//    STATE.with(|s: &RefCell<Option<State>>| {
-//        s.borrow()
-//            .as_ref()
-//            .and_then(|state| state.frames.iter().find(|frame| frame.id == id).cloned())
-//    })
-//}
-
-//// Функция обновления для обновления кадра по идентификатору
-//#[update]
-//fn update_frame(id: u32, new_frame: Frame) {
-//    STATE.with(|s: &RefCell<Option<State>>| {
-//        if let Some(state) = s.borrow_mut().as_mut() {
-//            if let Some(frame) = state.frames.iter_mut().find(|frame| frame.id == id) {
-//                *frame = new_frame;
-//            }
-//        }
-//    })
-//}
+#[ic_cdk::update]
+pub fn delete_frame_by_id(id: usize) {
+    STATE.with(|state| {
+        state.borrow_mut().remove(&id);
+    })
+}

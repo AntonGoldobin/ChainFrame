@@ -1,5 +1,25 @@
+type Frame = record {
+  id : nat64;
+  image_url : text;
+  top : nat64;
+  left : nat64;
+  width : nat64;
+  height : nat64;
+  children_ids : opt vec nat64;
+};
+
+type FrameWithOptionalFields = record {
+  image_url : opt text;
+  top : opt nat64;
+  left : opt nat64;
+  width : opt nat64;
+  height : opt nat64;
+  children_ids : opt vec nat64;
+};
+
 service : {
-  "get" : () -> (nat32) query;
-  "inc" : () -> ();
-  "set" : (nat32) -> ();
+  insert_frame : (Frame) -> (nat64);
+  get_frame_by_id : (nat64) -> (opt Frame) query;
+  update_fields_in_frame_by_id : (nat64, FrameWithOptionalFields) -> ();
+  delete_frame_by_id : (nat64) -> ();
 };
