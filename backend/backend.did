@@ -1,5 +1,4 @@
 type Frame = record {
-  id : nat64;
   image_url : text;
   top : nat64;
   left : nat64;

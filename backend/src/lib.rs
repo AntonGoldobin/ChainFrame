@@ -11,7 +11,6 @@ thread_local! {
 
 #[derive(CandidType, Serialize, Deserialize, Clone)]
 pub struct Frame {
-    id: usize,
     image_url: String,
     top: usize,
     left: usize,
