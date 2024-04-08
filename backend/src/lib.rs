@@ -12,11 +12,11 @@ thread_local! {
 #[derive(CandidType, Serialize, Deserialize, Clone)]
 pub struct Frame {
     image_url: String,
-    top: usize,
-    left: usize,
-    width: usize,
-    height: usize,
-    children_ids: Option<Vec<usize>>,
+    top: u32,
+    left: u32,
+    width: u32,
+    height: u32,
+    children_ids: Option<Vec<u32>>,
 }
 
 #[ic_cdk::pre_upgrade]
@@ -51,11 +51,11 @@ pub fn get_frame_by_id(id: usize) -> Option<Frame> {
 #[derive(CandidType, Deserialize)]
 pub struct FrameWithOptionalFields {
     image_url: Option<String>,
-    top: Option<usize>,
-    left: Option<usize>,
-    width: Option<usize>,
-    height: Option<usize>,
-    children_ids: Option<Vec<usize>>,
+    top: Option<u32>,
+    left: Option<u32>,
+    width: Option<u32>,
+    height: Option<u32>,
+    children_ids: Option<Vec<u32>>,
 }
 
 #[ic_cdk::update]
