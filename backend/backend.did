@@ -1,19 +1,19 @@
 type Frame = record {
   image_url : text;
-  top : nat32;
-  left : nat32;
-  width : nat32;
-  height : nat32;
-  children_ids : opt vec nat32;
+  top : nat16;
+  left : nat16;
+  width : nat16;
+  height : nat16;
+  children_ids : opt vec nat16;
 };
 
 type FrameWithOptionalFields = record {
   image_url : opt text;
-  top : opt nat32;
-  left : opt nat32;
-  width : opt nat32;
-  height : opt nat32;
-  children_ids : opt vec nat32;
+  top : opt nat16;
+  left : opt nat16;
+  width : opt nat16;
+  height : opt nat16;
+  children_ids : opt vec nat16;
 };
 
 service : {
