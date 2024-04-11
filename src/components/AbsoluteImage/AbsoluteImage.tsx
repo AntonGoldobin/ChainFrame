@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { zoomConfig } from '../../config/zoomConfig';
-import { backend } from '../../declarations/backend';
 import { IFrame } from '../../models/IFrame';
+import { getFrameById } from '../../utils/mockApi';
 import { IFrameConfig } from '../FrameChain/FrameChain';
 import ImageCanvas from '../ImageCanvas/ImageCanvas';
 import { AbsoluteImageContainer } from './AbsoluteImage.styled';
@@ -19,10 +19,10 @@ export const AbsoluteImage = ({
   const [isShown, setIsShown] = useState(true);
 
   useEffect(() => {
-    backend.get().then((count) => console.log(count));
-    //getFrameById(id)
-    //  .then((frame) => setFrame(frame))
-    //  .catch(console.error);
+    //backend.get().then((count) => console.log(count));
+    getFrameById(id)
+      .then((frame) => setFrame(frame))
+      .catch(console.error);
   }, [id]);
 
   // Check is frame ready to be changed to a new Frame Chain

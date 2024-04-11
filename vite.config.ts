@@ -37,10 +37,17 @@ export default defineConfig({
   },
   optimizeDeps: {
     esbuildOptions: {
+      target: 'esnext',
       define: {
         global: 'globalThis',
       },
+      supported: {
+        bigint: true,
+      },
     },
+  },
+  build: {
+    target: ['esnext'], // 👈 build.target
   },
   server: {
     // Local IC replica proxy
