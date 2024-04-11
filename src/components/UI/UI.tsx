@@ -15,21 +15,21 @@ export const UI = () => {
 
   interface ITestFrame {
     image_url: string;
-    top: bigint;
-    left: bigint;
-    width: bigint;
-    height: bigint;
-    children_ids: [] | [bigint[] | BigUint64Array];
+    top: number;
+    left: number;
+    width: number;
+    height: number;
+    children_ids: [] | [number[] | Uint32Array];
   }
 
   useEffect(() => {
     const newFrame: ITestFrame = {
       image_url:
         'https://plus.unsplash.com/premium_photo-1683140811960-956e5bbf858e?q=80&w=2954&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-      top: 0n,
-      left: 0n,
-      width: 0n,
-      height: 0n,
+      top: 0,
+      left: 0,
+      width: 0,
+      height: 0,
       children_ids: [],
     };
 
