@@ -1,4 +1,14 @@
 type Frame = record {
+  uuid : text;
+  image_url : text;
+  top : nat32;
+  left : nat32;
+  width : nat32;
+  height : nat32;
+  children_ids : opt vec nat32;
+};
+
+type InsertFrame = record {
   image_url : text;
   top : nat32;
   left : nat32;
@@ -17,8 +27,8 @@ type FrameWithOptionalFields = record {
 };
 
 service : {
-  insert_frame : (Frame) -> (nat64);
-  get_frame_by_id : (nat64) -> (opt Frame) query;
-  update_fields_in_frame_by_id : (nat64, FrameWithOptionalFields) -> ();
-  delete_frame_by_id : (nat64) -> ();
+  insert_frame : (InsertFrame) -> (text);
+  get_frame_by_uuid : (text) -> (opt Frame) query;
+  update_fields_in_frame_by_uuid : (text, FrameWithOptionalFields) -> ();
+  delete_frame_by_uuid : (text) -> ();
 };

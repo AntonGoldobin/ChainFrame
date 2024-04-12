@@ -1,9 +1,10 @@
-use std::{cell::RefCell, collections::BTreeMap};
+use std::{cell::RefCell, collections::BTreeMap, str::FromStr};
 
 use candid::CandidType;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
-type FrameStore = BTreeMap<usize, Frame>;
+type FrameStore = BTreeMap<Uuid, Frame>;
 
 thread_local! {
     pub static STATE: RefCell<FrameStore> = RefCell::default();
@@ -11,12 +12,13 @@ thread_local! {
 
 #[derive(CandidType, Serialize, Deserialize, Clone)]
 pub struct Frame {
+    uuid: String,
     image_url: String,
     top: u32,
     left: u32,
     width: u32,
     height: u32,
-    children_ids: Option<Vec<u32>>,
+    children_ids: Option<Vec<String>>,
 }
 
 #[ic_cdk::pre_upgrade]
@@ -36,16 +38,35 @@ pub fn post_upgrade() {
     STATE.with(|state| state.borrow_mut().extend(deserialized_frame_store))
 }
 
+#[derive(CandidType, Deserialize)]
+pub struct InsertFrame {
+    image_url: String,
+    top: u32,
+    left: u32,
+    width: u32,
+    height: u32,
+    children_ids: Option<Vec<String>>,
+}
+
 #[ic_cdk::update]
-pub fn insert_frame(frame: Frame) -> usize {
-    let id = STATE.with(|state| state.borrow().len()).wrapping_add(1);
-    STATE.with(|state| state.borrow_mut().insert(id, frame));
-    id
+pub fn insert_frame(frame: InsertFrame) -> String {
+    let uuid = Uuid::new_v4();
+    STATE.with(|state| state.borrow_mut().insert(uuid, Frame {
+        uuid: uuid.to_string(),
+        image_url: frame.image_url,
+        top: frame.top,
+        left: frame.left,
+        width: frame.width,
+        height: frame.height,
+        children_ids: frame.children_ids
+    }));
+    uuid.to_string()
 }
 
 #[ic_cdk::query]
-pub fn get_frame_by_id(id: usize) -> Option<Frame> {
-    STATE.with(|state| state.borrow().get(&id).cloned())
+pub fn get_frame_by_uuid(uuid: String) -> Option<Frame> {
+    let uuid = Uuid::from_str(&uuid).expect("Invalid UUID");
+    STATE.with(|state| state.borrow().get(&uuid).cloned())
 }
 
 #[derive(CandidType, Deserialize)]
@@ -55,13 +76,14 @@ pub struct FrameWithOptionalFields {
     left: Option<u32>,
     width: Option<u32>,
     height: Option<u32>,
-    children_ids: Option<Vec<u32>>,
+    children_ids: Option<Vec<String>>,
 }
 
 #[ic_cdk::update]
-pub fn update_fields_in_frame_by_id(id: usize, frame_with_optional_fields: FrameWithOptionalFields) {
+pub fn update_fields_in_frame_by_uuid(uuid: String, frame_with_optional_fields: FrameWithOptionalFields) {
+    let uuid = Uuid::from_str(&uuid).expect("Invalid UUID");
     STATE.with(|state| {
-        state.borrow_mut().entry(id).and_modify(|frame| {
+        state.borrow_mut().entry(uuid).and_modify(|frame| {
             if let Some(image_url) = frame_with_optional_fields.image_url {
                 frame.image_url = image_url
             }
@@ -83,8 +105,9 @@ pub fn update_fields_in_frame_by_id(id: usize, frame_with_optional_fields: Frame
 }
 
 #[ic_cdk::update]
-pub fn delete_frame_by_id(id: usize) {
+pub fn delete_frame_by_uuid(uuid: String) {
+    let uuid = Uuid::from_str(&uuid).expect("Invalid UUID");
     STATE.with(|state| {
-        state.borrow_mut().remove(&id);
+        state.borrow_mut().remove(&uuid);
     })
 }
