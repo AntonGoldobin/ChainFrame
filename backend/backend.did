@@ -1,6 +1,6 @@
 type Frame = record {
   uuid : text;
-  image_url : text;
+  image_url : opt text;
   top : nat32;
   left : nat32;
   width : nat32;
