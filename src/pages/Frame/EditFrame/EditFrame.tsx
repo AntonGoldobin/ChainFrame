@@ -2,11 +2,15 @@ import { Button, message } from 'antd';
 import { useEffect, useState } from 'react';
 import ReactCrop, { Crop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
-import { IFrameCreateRequest } from '../../../models/IFrame';
+import { useParams } from 'react-router-dom';
+import { backend } from '../../../declarations/backend';
+import { IFrame, IFrameCreateRequest } from '../../../models/IFrame';
 import * as styled from './EditFrame.styled';
 
 export const EditFrame = () => {
   const [crop, setCrop] = useState<Crop>();
+  const { id: frameId } = useParams();
+  const [frame, setFrame] = useState<IFrame | null | undefined>(null);
 
   const handleCreateFrame = () => {
     if (!crop) {
@@ -17,14 +21,27 @@ export const EditFrame = () => {
     }
 
     const newFrame: IFrameCreateRequest = {
-      top: crop?.y,
-      left: crop?.x,
-      width: crop?.width,
-      height: crop?.height,
+      top: 0,
+      left: 0,
+      width: 0,
+      height: 0,
     };
 
-    //backend.addFrame(newFrame);
+    backend.insert_frame(newFrame).then((createdFrame) => {
+      console.log('createdFrame', createdFrame);
+    });
   };
+
+  useEffect(() => {
+    if (!frameId) return;
+
+    const getAndSetFrame = async () => {
+      const frameRes = await backend.get_frame_by_uuid(frameId);
+      setFrame(frameRes[0] as any as IFrame);
+    };
+
+    getAndSetFrame();
+  }, [frameId]);
 
   useEffect(() => console.log(crop), [crop]);
 
@@ -32,7 +49,7 @@ export const EditFrame = () => {
     <styled.Container>
       <Button onClick={handleCreateFrame}>CreateFrame</Button>
       <ReactCrop crop={crop} onChange={(c) => setCrop(c)}>
-        <styled.ImageContainer src="https://img.freepik.com/free-photo/painting-mountain-lake-with-mountain-background_188544-9126.jpg" />
+        <styled.ImageContainer src={frame?.image_url} />
       </ReactCrop>
     </styled.Container>
   );

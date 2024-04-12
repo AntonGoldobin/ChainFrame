@@ -13,7 +13,7 @@ thread_local! {
 #[derive(CandidType, Serialize, Deserialize, Clone)]
 pub struct Frame {
     uuid: String,
-    image_url: String,
+    image_url: Option<String>,
     top: u32,
     left: u32,
     width: u32,
@@ -40,26 +40,29 @@ pub fn post_upgrade() {
 
 #[derive(CandidType, Deserialize)]
 pub struct InsertFrame {
-    image_url: String,
     top: u32,
     left: u32,
     width: u32,
     height: u32,
-    children_ids: Option<Vec<String>>,
 }
 
 #[ic_cdk::update]
 pub fn insert_frame(frame: InsertFrame) -> String {
     let uuid = Uuid::new_v4();
-    STATE.with(|state| state.borrow_mut().insert(uuid, Frame {
-        uuid: uuid.to_string(),
-        image_url: frame.image_url,
-        top: frame.top,
-        left: frame.left,
-        width: frame.width,
-        height: frame.height,
-        children_ids: frame.children_ids
-    }));
+    STATE.with(|state| {
+        state.borrow_mut().insert(
+            uuid,
+            Frame {
+                uuid: uuid.to_string(),
+                image_url: None,
+                top: frame.top,
+                left: frame.left,
+                width: frame.width,
+                height: frame.height,
+                children_ids: None,
+            },
+        )
+    });
     uuid.to_string()
 }
 
@@ -80,12 +83,15 @@ pub struct FrameWithOptionalFields {
 }
 
 #[ic_cdk::update]
-pub fn update_fields_in_frame_by_uuid(uuid: String, frame_with_optional_fields: FrameWithOptionalFields) {
+pub fn update_fields_in_frame_by_uuid(
+    uuid: String,
+    frame_with_optional_fields: FrameWithOptionalFields,
+) {
     let uuid = Uuid::from_str(&uuid).expect("Invalid UUID");
     STATE.with(|state| {
         state.borrow_mut().entry(uuid).and_modify(|frame| {
             if let Some(image_url) = frame_with_optional_fields.image_url {
-                frame.image_url = image_url
+                frame.image_url = Some(image_url)
             }
             if let Some(top) = frame_with_optional_fields.top {
                 frame.top = top

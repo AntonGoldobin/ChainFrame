@@ -13,3 +13,4 @@ serde_cbor = "0.11.2"
 ic-cdk = "0.13.2"
 serde = { version = "1", features = ["derive"] }
 uuid = { version = "1.8.0", features = ["serde", "v4", "fast-rng"] }
+getrandom = { version = "0.2", features = ["js"] }

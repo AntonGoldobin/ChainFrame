@@ -7,7 +7,7 @@ import ImageCanvas from '../ImageCanvas/ImageCanvas';
 import { AbsoluteImageContainer } from './AbsoluteImage.styled';
 
 export interface IAbsoluteImageProps {
-  id: number;
+  id: string;
 }
 
 export const AbsoluteImage = ({
@@ -46,7 +46,7 @@ export const AbsoluteImage = ({
   };
 
   const checkRefSize = () => {
-    if (id !== 3) {
+    if (id !== '3') {
       return;
     }
 
@@ -66,7 +66,7 @@ export const AbsoluteImage = ({
         curFrameBounding.width / curFrameUnscaledWidth,
       );
       setFrameConfig({
-        firstFrameId: 1,
+        firstFrameId: '1',
         initTranslateX: curFrameBounding?.left,
         initTranslateY: curFrameBounding?.top,
         initScale: curFrameBounding.width / curFrameUnscaledWidth,
@@ -88,10 +88,10 @@ export const AbsoluteImage = ({
         }}
       >
         <div style={{ position: 'relative' }}>
-          {isShown && <ImageCanvas imageUrl={frame.imageUrl} />}
+          {isShown && <ImageCanvas imageUrl={frame.image_url} />}
 
-          {frame?.childrenIds &&
-            frame?.childrenIds?.map((id) => (
+          {frame?.children_ids &&
+            frame?.children_ids?.map((id) => (
               <AbsoluteImage key={id} id={id} setFrameConfig={setFrameConfig} />
             ))}
         </div>

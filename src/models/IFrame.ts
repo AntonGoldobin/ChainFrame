@@ -1,11 +1,11 @@
 export interface IFrame {
-  id: number;
-  imageUrl: string;
+  id: string;
+  image_url: string;
   top: number;
   left: number;
   width: number;
   height: number;
-  childrenIds?: number[];
+  children_ids: any[];
 }
 
 export interface IFrameCreateRequest {

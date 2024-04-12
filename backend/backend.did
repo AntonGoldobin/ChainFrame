@@ -9,12 +9,10 @@ type Frame = record {
 };
 
 type InsertFrame = record {
-  image_url : text;
   top : nat32;
   left : nat32;
   width : nat32;
   height : nat32;
-  children_ids : opt vec nat32;
 };
 
 type FrameWithOptionalFields = record {
