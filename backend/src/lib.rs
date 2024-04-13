@@ -4,6 +4,8 @@ use candid::CandidType;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+mod uuid;
+
 type FrameStore = BTreeMap<Uuid, Frame>;
 
 thread_local! {
@@ -48,7 +50,7 @@ pub struct InsertFrame {
 
 #[ic_cdk::update]
 pub fn insert_frame(frame: InsertFrame) -> String {
-    let uuid = Uuid::new_v4();
+    let uuid = Uuid::new();
     STATE.with(|state| {
         state.borrow_mut().insert(
             uuid,
