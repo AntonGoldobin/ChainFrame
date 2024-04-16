@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::BTreeMap, str::FromStr};
+use std::{cell::RefCell, collections::BTreeMap};
 
 use candid::CandidType;
 use rand::RngCore;
@@ -8,12 +8,6 @@ type FrameStore = BTreeMap<String, Frame>;
 
 thread_local! {
     pub static STATE: RefCell<FrameStore> = RefCell::default();
-}
-
-pub fn generate_random_string() -> String {
-    let mut bytes: [u8; 64] = [0u8; 64];
-    rand::thread_rng().fill_bytes(&mut bytes);
-    bytes.map(char::from).into_iter().collect()
 }
 
 #[derive(CandidType, Serialize, Deserialize, Clone)]
@@ -54,12 +48,13 @@ pub struct InsertFrame {
 
 #[ic_cdk::update]
 pub fn insert_frame(frame: InsertFrame) -> String {
-    let uuid = generate_random_string();
+    let mut bytes: [u8; 64] = [0u8; 64];
+    rand::thread_rng().fill_bytes(&mut bytes);
     STATE.with(|state| {
         state.borrow_mut().insert(
-            uuid.clone(),
+            bytes.map(char::from).into_iter().collect(),
             Frame {
-                uuid: uuid.clone(),
+                uuid: bytes.map(char::from).into_iter().collect(),
                 image_url: None,
                 top: frame.top,
                 left: frame.left,
@@ -69,7 +64,7 @@ pub fn insert_frame(frame: InsertFrame) -> String {
             },
         )
     });
-    uuid
+    bytes.map(char::from).into_iter().collect()
 }
 
 #[ic_cdk::query]
