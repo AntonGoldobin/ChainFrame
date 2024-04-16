@@ -57,7 +57,7 @@ pub fn insert_frame(frame: InsertFrame) -> String {
     let uuid = generate_random_string();
     STATE.with(|state| {
         state.borrow_mut().insert(
-            uuid,
+            uuid.clone(),
             Frame {
                 uuid: uuid.clone(),
                 image_url: None,
