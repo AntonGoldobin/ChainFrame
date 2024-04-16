@@ -1,6 +1,7 @@
 use std::{cell::RefCell, collections::BTreeMap, str::FromStr};
 
 use candid::CandidType;
+use rand::RngCore;
 use serde::{Deserialize, Serialize};
 
 type FrameStore = BTreeMap<String, Frame>;
@@ -10,7 +11,8 @@ thread_local! {
 }
 
 pub fn generate_random_string() -> String {
-    let bytes: [u8; 64] = rand::random();
+    let mut bytes: [u8; 64] = [0u8; 64];
+    rand::thread_rng().fill_bytes(&mut bytes);
     bytes.map(char::from).into_iter().collect()
 }
 
