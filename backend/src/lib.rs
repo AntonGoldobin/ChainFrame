@@ -2,14 +2,16 @@ use std::{cell::RefCell, collections::BTreeMap, str::FromStr};
 
 use candid::CandidType;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
-mod uuid;
-
-type FrameStore = BTreeMap<Uuid, Frame>;
+type FrameStore = BTreeMap<String, Frame>;
 
 thread_local! {
     pub static STATE: RefCell<FrameStore> = RefCell::default();
+}
+
+pub fn generate_random_string() -> String {
+    let bytes: [u8; 64] = rand::random();
+    bytes.map(char::from).into_iter().collect()
 }
 
 #[derive(CandidType, Serialize, Deserialize, Clone)]
@@ -50,12 +52,12 @@ pub struct InsertFrame {
 
 #[ic_cdk::update]
 pub fn insert_frame(frame: InsertFrame) -> String {
-    let uuid = Uuid::new();
+    let uuid = generate_random_string();
     STATE.with(|state| {
         state.borrow_mut().insert(
             uuid,
             Frame {
-                uuid: uuid.to_string(),
+                uuid: uuid.clone(),
                 image_url: None,
                 top: frame.top,
                 left: frame.left,
@@ -65,12 +67,11 @@ pub fn insert_frame(frame: InsertFrame) -> String {
             },
         )
     });
-    uuid.to_string()
+    uuid
 }
 
 #[ic_cdk::query]
 pub fn get_frame_by_uuid(uuid: String) -> Option<Frame> {
-    let uuid = Uuid::from_str(&uuid).expect("Invalid UUID");
     STATE.with(|state| state.borrow().get(&uuid).cloned())
 }
 
@@ -89,7 +90,6 @@ pub fn update_fields_in_frame_by_uuid(
     uuid: String,
     frame_with_optional_fields: FrameWithOptionalFields,
 ) {
-    let uuid = Uuid::from_str(&uuid).expect("Invalid UUID");
     STATE.with(|state| {
         state.borrow_mut().entry(uuid).and_modify(|frame| {
             if let Some(image_url) = frame_with_optional_fields.image_url {
@@ -114,7 +114,6 @@ pub fn update_fields_in_frame_by_uuid(
 
 #[ic_cdk::update]
 pub fn delete_frame_by_uuid(uuid: String) {
-    let uuid = Uuid::from_str(&uuid).expect("Invalid UUID");
     STATE.with(|state| {
         state.borrow_mut().remove(&uuid);
     })
