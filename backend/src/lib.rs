@@ -1,10 +1,9 @@
 use std::{cell::RefCell, collections::BTreeMap};
 
 use candid::CandidType;
-use rand::RngCore;
 use serde::{Deserialize, Serialize};
 
-type FrameStore = BTreeMap<String, Frame>;
+type FrameStore = BTreeMap<usize, Frame>;
 
 thread_local! {
     pub static STATE: RefCell<FrameStore> = RefCell::default();
@@ -12,7 +11,7 @@ thread_local! {
 
 #[derive(CandidType, Serialize, Deserialize, Clone)]
 pub struct Frame {
-    uuid: String,
+    id: usize,
     image_url: Option<String>,
     top: u32,
     left: u32,
@@ -47,14 +46,13 @@ pub struct InsertFrame {
 }
 
 #[ic_cdk::update]
-pub fn insert_frame(frame: InsertFrame) -> String {
-    let mut bytes: [u8; 64] = [0u8; 64];
-    rand::thread_rng().fill_bytes(&mut bytes);
+pub fn insert_frame(frame: InsertFrame) -> usize {
+    let id = STATE.with(|state| state.borrow().len().wrapping_add(1));
     STATE.with(|state| {
         state.borrow_mut().insert(
-            bytes.map(char::from).into_iter().collect(),
+            id,
             Frame {
-                uuid: bytes.map(char::from).into_iter().collect(),
+                id,
                 image_url: None,
                 top: frame.top,
                 left: frame.left,
@@ -64,12 +62,12 @@ pub fn insert_frame(frame: InsertFrame) -> String {
             },
         )
     });
-    bytes.map(char::from).into_iter().collect()
+    id
 }
 
 #[ic_cdk::query]
-pub fn get_frame_by_uuid(uuid: String) -> Option<Frame> {
-    STATE.with(|state| state.borrow().get(&uuid).cloned())
+pub fn get_frame_by_id(id: usize) -> Option<Frame> {
+    STATE.with(|state| state.borrow().get(&id).cloned())
 }
 
 #[derive(CandidType, Deserialize)]
@@ -83,15 +81,13 @@ pub struct FrameWithOptionalFields {
 }
 
 #[ic_cdk::update]
-pub fn update_fields_in_frame_by_uuid(
-    uuid: String,
+pub fn update_fields_in_frame_by_id(
+    id: usize,
     frame_with_optional_fields: FrameWithOptionalFields,
 ) {
     STATE.with(|state| {
-        state.borrow_mut().entry(uuid).and_modify(|frame| {
-            if let Some(image_url) = frame_with_optional_fields.image_url {
-                frame.image_url = Some(image_url)
-            }
+        state.borrow_mut().entry(id).and_modify(|frame| {
+            frame.image_url = frame_with_optional_fields.image_url;
             if let Some(top) = frame_with_optional_fields.top {
                 frame.top = top
             }
@@ -110,8 +106,8 @@ pub fn update_fields_in_frame_by_uuid(
 }
 
 #[ic_cdk::update]
-pub fn delete_frame_by_uuid(uuid: String) {
+pub fn delete_frame_by_id(id: usize) {
     STATE.with(|state| {
-        state.borrow_mut().remove(&uuid);
+        state.borrow_mut().remove(&id);
     })
 }
