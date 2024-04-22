@@ -1,9 +1,9 @@
-import { Button, message } from 'antd';
+import { Button } from 'antd';
 import { useEffect, useState } from 'react';
 import ReactCrop, { Crop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { useParams } from 'react-router-dom';
-import { backend } from '../../../declarations/backend';
+import * as canister from '../../../declarations/backend';
 import { IFrame, IFrameCreateRequest } from '../../../models/IFrame';
 import * as styled from './EditFrame.styled';
 
@@ -13,12 +13,12 @@ export const EditFrame = () => {
   const [frame, setFrame] = useState<IFrame | null | undefined>(null);
 
   const handleCreateFrame = () => {
-    if (!crop) {
-      message.error(
-        'Please select a part of the frame for creating a new frame.',
-      );
-      return;
-    }
+    //if (!crop) {
+    //  message.error(
+    //    'Please select a part of the frame for creating a new frame.',
+    //  );
+    //  return;
+    //}
 
     const newFrame: IFrameCreateRequest = {
       top: 0,
@@ -27,21 +27,23 @@ export const EditFrame = () => {
       height: 0,
     };
 
-    backend.insert_frame(newFrame).then((createdFrame) => {
+    canister.backend.insert_frame(newFrame).then((createdFrame) => {
       console.log('createdFrame', createdFrame);
     });
   };
 
   useEffect(() => {
+    console.log(frameId, canister.backend);
     if (!frameId) return;
 
     const getAndSetFrame = async () => {
-      const frameRes = await backend.get_frame_by_uuid(frameId);
+      console.log(canister.backend);
+      const frameRes = await canister.backend?.get_frame_by_id(BigInt(frameId));
       setFrame(frameRes[0] as any as IFrame);
+      console.log(frameRes);
     };
-
     getAndSetFrame();
-  }, [frameId]);
+  }, [frameId, canister.backend]);
 
   useEffect(() => console.log(crop), [crop]);
 
