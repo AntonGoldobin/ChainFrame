@@ -20,6 +20,26 @@ pub struct Frame {
     children_ids: Option<Vec<String>>,
 }
 
+#[ic_cdk::init]
+pub fn init() {
+    let borrowed_string = Some("https://getwallpapers.com/wallpaper/full/9/f/6/1498888-free-download-china-desktop-wallpaper-1920x1200-for-ipad-2.jpg".to_owned());
+
+    STATE.with(|state| {
+        state.borrow_mut().insert(
+            state.borrow().len().wrapping_add(1),
+            Frame {
+                id: 1,
+                image_url: borrowed_string,
+                top: 0,
+                left: 0,
+                width: 0,
+                height: 0,
+                children_ids: None,
+            },
+        );
+    })
+}
+
 #[ic_cdk::pre_upgrade]
 pub fn pre_upgrade() {
     let serialized_frame_store =
