@@ -6,7 +6,19 @@ use serde::{Deserialize, Serialize};
 type FrameStore = BTreeMap<usize, Frame>;
 
 thread_local! {
-    pub static STATE: RefCell<FrameStore> = RefCell::default();
+    pub static STATE: RefCell<FrameStore> = {
+        let mut map = FrameStore::new();
+        map.insert(0, Frame {
+            id: 0,
+            image_url: Some("https://getwallpapers.com/wallpaper/full/9/f/6/1498888-free-download-china-desktop-wallpaper-1920x1200-for-ipad-2.jpg".into()),
+            top: 0,
+            left: 0,
+            width: 0,
+            height: 0,
+            children_ids: None,
+        });
+        RefCell::new(map)
+    };
 }
 
 #[derive(CandidType, Serialize, Deserialize, Clone)]
@@ -17,7 +29,7 @@ pub struct Frame {
     left: u32,
     width: u32,
     height: u32,
-    children_ids: Option<Vec<String>>,
+    children_ids: Option<Vec<usize>>,
 }
 
 #[ic_cdk::pre_upgrade]
@@ -77,7 +89,7 @@ pub struct FrameWithOptionalFields {
     left: Option<u32>,
     width: Option<u32>,
     height: Option<u32>,
-    children_ids: Option<Vec<String>>,
+    children_ids: Option<Vec<usize>>,
 }
 
 #[ic_cdk::update]

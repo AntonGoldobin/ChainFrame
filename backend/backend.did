@@ -5,7 +5,7 @@ type Frame = record {
   left : nat32;
   width : nat32;
   height : nat32;
-  children_ids : opt vec nat32;
+  children_ids : opt vec nat64;
 };
 
 type InsertFrame = record {
@@ -21,7 +21,7 @@ type FrameWithOptionalFields = record {
   left : opt nat32;
   width : opt nat32;
   height : opt nat32;
-  children_ids : opt vec nat32;
+  children_ids : opt vec nat64;
 };
 
 service : {
