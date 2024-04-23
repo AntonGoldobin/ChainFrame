@@ -5,7 +5,7 @@ import { FrameChain, IFrameChainProps } from '../FrameChain/FrameChain';
 export const TransformContainer = () => {
   const [frameConfig, setFrameConfig] = useState<IFrameChainProps>({
     initScale: 1,
-    firstFrameId: '1',
+    firstFrameId: 0,
     initTranslateX: 0,
     initTranslateY: 0,
   });

@@ -7,7 +7,7 @@ import ImageCanvas from '../ImageCanvas/ImageCanvas';
 import { AbsoluteImageContainer } from './AbsoluteImage.styled';
 
 export interface IAbsoluteImageProps {
-  id: string;
+  id: number;
 }
 
 export const AbsoluteImage = ({
@@ -19,11 +19,18 @@ export const AbsoluteImage = ({
   const [isShown, setIsShown] = useState(true);
 
   useEffect(() => {
-    backend.get_frame_by_id(BigInt(1)).then((count) => console.log(count));
+    backend
+      .get_frame_by_id(BigInt(0))
+      .then((frames) => setFrame(frames?.[0] as any));
+
     //getFrameById(id)
     //  .then((frame) => setFrame(frame))
     //  .catch(console.error);
   }, [id]);
+
+  useEffect(() => {
+    console.log(frame);
+  }, [frame]);
 
   // Check is frame ready to be changed to a new Frame Chain
   const isFrameBiggerThanDisplay = () => {
@@ -46,7 +53,7 @@ export const AbsoluteImage = ({
   };
 
   const checkRefSize = () => {
-    if (id !== '3') {
+    if (id !== 4) {
       return;
     }
 
@@ -66,7 +73,7 @@ export const AbsoluteImage = ({
         curFrameBounding.width / curFrameUnscaledWidth,
       );
       setFrameConfig({
-        firstFrameId: '1',
+        firstFrameId: 0,
         initTranslateX: curFrameBounding?.left,
         initTranslateY: curFrameBounding?.top,
         initScale: curFrameBounding.width / curFrameUnscaledWidth,
@@ -88,7 +95,7 @@ export const AbsoluteImage = ({
         }}
       >
         <div style={{ position: 'relative' }}>
-          {isShown && <ImageCanvas imageUrl={frame.image_url} />}
+          {isShown && <ImageCanvas imageUrl={frame.image_url[0]} />}
 
           {frame?.children_ids &&
             frame?.children_ids?.map((id) => (

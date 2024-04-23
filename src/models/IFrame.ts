@@ -1,6 +1,6 @@
 export interface IFrame {
-  id: string;
-  image_url: string;
+  id: number;
+  image_url: string[];
   top: number;
   left: number;
   width: number;

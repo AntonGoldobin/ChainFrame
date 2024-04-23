@@ -10,11 +10,11 @@ thread_local! {
         let mut map = FrameStore::new();
         map.insert(0, Frame {
             id: 0,
-            image_url: Some("https://getwallpapers.com/wallpaper/full/9/f/6/1498888-free-download-china-desktop-wallpaper-1920x1200-for-ipad-2.jpg".into()),
+            image_url: Some("https://img.freepik.com/free-photo/anime-style-house-architecture_23-2151064885.jpg?t=st=1713813753~exp=1713817353~hmac=8af8b1b1c0cc7258d68e70ba6c281573e57a90f187a80b6811a299fc6666681f&w=1380".into()),
             top: 0,
             left: 0,
-            width: 0,
-            height: 0,
+            width: 500,
+            height: 500,
             children_ids: None,
         });
         RefCell::new(map)

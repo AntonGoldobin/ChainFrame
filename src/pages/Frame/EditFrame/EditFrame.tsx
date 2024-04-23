@@ -51,7 +51,7 @@ export const EditFrame = () => {
     <styled.Container>
       <Button onClick={handleCreateFrame}>CreateFrame</Button>
       <ReactCrop crop={crop} onChange={(c) => setCrop(c)}>
-        <styled.ImageContainer src={frame?.image_url} />
+        <styled.ImageContainer src={frame?.image_url[0]} />
       </ReactCrop>
     </styled.Container>
   );

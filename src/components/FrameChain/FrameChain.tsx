@@ -4,7 +4,7 @@ import { useZoom } from '../../hooks/useZoom';
 import { AbsoluteImage } from '../AbsoluteImage/AbsoluteImage';
 
 export interface IFrameChainProps {
-  firstFrameId: string;
+  firstFrameId: number;
   initScale: number;
   initTranslateX: number;
   initTranslateY: number;

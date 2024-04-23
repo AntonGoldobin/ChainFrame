@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 
-export const Topbar = styled.div`
+export const TopBar = styled.div`
   position: fixed;
   top: 0;
   left: 0;
@@ -9,11 +9,11 @@ export const Topbar = styled.div`
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
-  background-color: #1a1a1ab3;
+  /*background-color: #1a1a1ab3;*/
   z-index: 10000;
 `;
 
-export const TopbarBlock = styled.div`
+export const TopBarBlock = styled.div`
   display: flex;
   justify-content: flex-start;
   align-items: center;

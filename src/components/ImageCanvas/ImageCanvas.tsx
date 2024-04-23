@@ -1,27 +1,29 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react';
 
 export interface IImageCanvasProps {
-	imageUrl: string
+  imageUrl: string;
 }
 
 const ImageCanvas = ({ imageUrl }: IImageCanvasProps) => {
-	const canvasRef: any = useRef()
+  const canvasRef: any = useRef();
 
-	useEffect(() => {
-		const canvas: any = canvasRef.current
-		const ctx = canvas.getContext('2d')
+  console.log(imageUrl);
 
-		const image = new Image()
-		image.src = imageUrl
+  useEffect(() => {
+    const canvas: any = canvasRef.current;
+    const ctx = canvas.getContext('2d');
 
-		image.onload = () => {
-			canvas.width = image.width
-			canvas.height = image.height
-			ctx.drawImage(image, 0, 0, image.width, image.height)
-		}
-	}, [imageUrl])
+    const image = new Image();
+    image.src = imageUrl;
 
-	return <canvas ref={canvasRef} />
-}
+    image.onload = () => {
+      canvas.width = image.width;
+      canvas.height = image.height;
+      ctx.drawImage(image, 0, 0, image.width, image.height);
+    };
+  }, [imageUrl]);
 
-export default ImageCanvas
+  return <canvas ref={canvasRef} />;
+};
+
+export default ImageCanvas;

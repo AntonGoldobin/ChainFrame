@@ -1,18 +1,13 @@
+import { MenuOutlined } from '@ant-design/icons';
 import { ConnectButton, ConnectDialog, useConnect } from '@connect2ic/react';
-import { Button, Typography } from 'antd';
-import { useEffect } from 'react';
+import { Button, Drawer } from 'antd';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import useInternetIdentity from '../../context/internet-identity/internet-identity';
+import { DrawerMenu } from './DrawerMenu/DrawerMenu';
 import * as styled from './UI.styled';
 
 export const UI = () => {
-  const {
-    authenticate,
-    isAuthed,
-    identity,
-    principal: test,
-    logout,
-  } = useInternetIdentity();
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const { isConnected, principal, activeProvider } = useConnect({
     onConnect: () => {
@@ -25,42 +20,37 @@ export const UI = () => {
 
   const navigate = useNavigate();
 
-  useEffect(
-    () => console.log(isAuthed, identity, principal),
-    [isAuthed, identity, principal],
-  );
-
-  const handleWhoAmI = () => {
-    console.log(isAuthed);
-    console.log(identity?.getPrincipal().toText());
-  };
-
-  const handleLogOut = () => {
-    logout();
-  };
-
   const editFrame = () => {
     navigate('frames/' + 1);
   };
 
   return (
-    <styled.Topbar>
-      <styled.TopbarBlock></styled.TopbarBlock>
-      <ConnectButton />
-      <ConnectDialog dark={false} />
-      {isAuthed ? (
-        <styled.TopbarBlock>
-          <Button onClick={() => editFrame()}>Редактировать</Button>
-          <Typography.Text>{identity?.getPrincipal().toText()}</Typography.Text>
-          <Button onClick={() => handleLogOut()} type="primary">
-            Выйти
-          </Button>
-        </styled.TopbarBlock>
-      ) : (
-        <Button onClick={() => authenticate()} type="primary">
-          Войти
-        </Button>
-      )}
-    </styled.Topbar>
+    <>
+      <styled.TopBar>
+        <styled.TopBarBlock>
+          <Button
+            icon={<MenuOutlined />}
+            onClick={() => setIsDrawerOpen(true)}
+          />
+        </styled.TopBarBlock>
+
+        <styled.TopBarBlock>
+          <ConnectButton />
+          <ConnectDialog dark={false} />
+          {isConnected && <Button onClick={() => editFrame()}>Edit</Button>}
+        </styled.TopBarBlock>
+      </styled.TopBar>
+      {/*Drawer*/}
+      <Drawer
+        title="FRAME CHAIN"
+        placement="left"
+        closable={false}
+        onClose={() => setIsDrawerOpen(false)}
+        open={isDrawerOpen}
+        key="left"
+      >
+        <DrawerMenu />
+      </Drawer>
+    </>
   );
 };

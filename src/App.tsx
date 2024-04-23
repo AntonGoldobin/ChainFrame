@@ -26,7 +26,7 @@ function App() {
         algorithm: theme.darkAlgorithm,
         token: {
           // Seed Token
-          colorPrimary: 'orange',
+          colorPrimary: 'de483e',
 
           // Alias Token
           //colorBgContainer: 'yellow',
