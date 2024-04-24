@@ -9,6 +9,7 @@ export interface IFrame {
   height: number;
   owner: Principal;
   children_ids: any[];
+  name: string;
 }
 
 export interface IRustFrame {
@@ -20,6 +21,7 @@ export interface IRustFrame {
   height: number;
   owner: Principal;
   children_ids: any[];
+  name: string;
 }
 
 export interface IFrameCreateRequest {
@@ -29,4 +31,11 @@ export interface IFrameCreateRequest {
   height: number;
   owner: string;
   parent_id: bigint;
+  name: string;
+  image_url: string;
+}
+
+export interface IFrameEditRequest {
+  image_url?: string;
+  name: string;
 }

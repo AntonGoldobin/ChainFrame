@@ -1,5 +1,5 @@
 import { ConnectButton, ConnectDialog, useConnect } from '@connect2ic/react';
-import { Button } from 'antd';
+import { Typography } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { DrawerMenu } from './DrawerMenu/DrawerMenu';
 import * as styled from './UI.styled';
@@ -16,22 +16,19 @@ export const UI = () => {
 
   const navigate = useNavigate();
 
-  const editFrame = () => {
-    navigate('frames/' + 1);
-  };
-
   return (
     <>
       <styled.TopBar>
         <styled.TopBarBlock>
-          {/*Drawer*/}
           <DrawerMenu />
+          <Typography.Title level={2} style={{ padding: 0, margin: 0 }}>
+            FRAME CHAIN
+          </Typography.Title>
         </styled.TopBarBlock>
 
         <styled.TopBarBlock>
           <ConnectButton />
           <ConnectDialog dark={false} />
-          {isConnected && <Button onClick={() => editFrame()}>Edit</Button>}
         </styled.TopBarBlock>
       </styled.TopBar>
     </>

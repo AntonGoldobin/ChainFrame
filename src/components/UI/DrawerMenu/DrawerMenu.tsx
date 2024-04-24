@@ -49,7 +49,7 @@ export const DrawerMenu = () => {
       'my-frames',
       <AppstoreOutlined />,
       myFrames.map((frame) =>
-        getItem(frame.id.toString(), frame.id.toString()),
+        getItem(frame.name.toString(), frame.id.toString()),
       ),
     ),
   ];

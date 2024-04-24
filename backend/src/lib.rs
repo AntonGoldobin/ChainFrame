@@ -17,6 +17,7 @@ thread_local! {
             height: 500,
                         owner: Principal::from_text("lzs4l-u7x56-o6h6c-56uq2-ajxbo-hok4a-cuzzz-4rc7d-7roup-buzvz-eae").expect("Could not decode the principal."),
             children_ids: None,
+                        name: String::from("MAIN")
         });
         RefCell::new(map)
     };
@@ -25,6 +26,7 @@ thread_local! {
 #[derive(CandidType, Serialize, Deserialize, Clone)]
 pub struct Frame {
     id: usize,
+    name: String,
     image_url: Option<String>,
     top: u32,
     left: u32,
@@ -59,6 +61,8 @@ pub struct InsertFrame {
     height: u32,
     owner: String,
     parent_id: usize,
+    name: String,
+    image_url: String,
 }
 
 #[ic_cdk::update]
@@ -69,13 +73,14 @@ pub fn insert_frame(frame: InsertFrame) -> usize {
             id,
             Frame {
                 id,
-                image_url: Some("https://www.wallpaperflare.com/static/914/283/693/pixel-art-pixels-city-japan-wallpaper.jpg".into()),
+                image_url: Some(frame.image_url),
                 top: frame.top,
                 left: frame.left,
                 width: frame.width,
                 height: frame.height,
                 owner: Principal::from_text(frame.owner).expect("Could not decode the principal."),
                 children_ids: None,
+                name: frame.name,
             },
         )
     });
@@ -122,6 +127,7 @@ pub struct FrameWithOptionalFields {
     width: Option<u32>,
     height: Option<u32>,
     children_ids: Option<Vec<usize>>,
+    name: Option<String>,
 }
 
 #[ic_cdk::update]
@@ -144,7 +150,27 @@ pub fn update_fields_in_frame_by_id(
             if let Some(height) = frame_with_optional_fields.height {
                 frame.height = height
             }
+            if let Some(name) = frame_with_optional_fields.name {
+                frame.name = name
+            }
             frame.children_ids = frame_with_optional_fields.children_ids
+        });
+    })
+}
+
+#[derive(CandidType, Deserialize)]
+pub struct FrameWithNameImageFields {
+    image_url: String,
+    name: String,
+}
+
+#[ic_cdk::update]
+pub fn edit_frame_by_id(id: usize, frame_fields: FrameWithNameImageFields) {
+    STATE.with(|state| {
+        state.borrow_mut().entry(id).and_modify(|frame| {
+            frame.image_url = Some(frame_fields.image_url);
+
+            frame.name = frame_fields.name
         });
     })
 }

@@ -10,7 +10,7 @@ export const TopBar = styled.div`
   align-items: center;
   padding: 1rem;
   /*background-color: #1a1a1ab3;*/
-  z-index: 10000;
+  z-index: 999;
 `;
 
 export const TopBarBlock = styled.div`

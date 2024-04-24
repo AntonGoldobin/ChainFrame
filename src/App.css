@@ -1,0 +1,24 @@
+body {
+  font-family: 'Barriecito', 'Jost', 'Caveat', cursive;
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-style: normal;
+
+  margin: 0;
+  --dot-bg: white;
+  --dot-color: #d2d2d2;
+  --dot-size: 1px;
+  --dot-space: 11px;
+  background: linear-gradient(
+        90deg,
+        var(--dot-bg) calc(var(--dot-space) - var(--dot-size)),
+        transparent 1%
+      )
+      center / var(--dot-space) var(--dot-space),
+    linear-gradient(
+        var(--dot-bg) calc(var(--dot-space) - var(--dot-size)),
+        transparent 1%
+      )
+      center / var(--dot-space) var(--dot-space),
+    var(--dot-color);
+}

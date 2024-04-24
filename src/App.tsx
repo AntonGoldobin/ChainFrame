@@ -2,10 +2,11 @@ import { createClient } from '@connect2ic/core';
 import { defaultProviders } from '@connect2ic/core/providers';
 import '@connect2ic/core/style.css';
 import { Connect2ICProvider } from '@connect2ic/react';
-import { ConfigProvider, theme } from 'antd';
+import { ConfigProvider } from 'antd';
 import { RouterProvider, createBrowserRouter } from 'react-router-dom';
+import './App.css';
 import * as backend from './declarations/backend/';
-import { EditFrame } from './pages/Frame/EditFrame/EditFrame';
+import { FramePage } from './pages/Frame/FramePage/FramePage';
 import { PlayGround } from './pages/PlayGround/PlayGround';
 
 const router = createBrowserRouter([
@@ -15,7 +16,7 @@ const router = createBrowserRouter([
   },
   {
     path: '/frames/:id',
-    element: <EditFrame />,
+    element: <FramePage />,
   },
 ]);
 
@@ -23,10 +24,11 @@ function App() {
   return (
     <ConfigProvider
       theme={{
-        algorithm: theme.darkAlgorithm,
+        //algorithm: theme.darkAlgorithm,
         token: {
           // Seed Token
           colorPrimary: 'de483e',
+          fontFamily: 'Jost',
 
           // Alias Token
           //colorBgContainer: 'yellow',
