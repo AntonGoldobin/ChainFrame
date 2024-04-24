@@ -1,17 +1,22 @@
-import {
-  AppstoreOutlined,
-  ContainerOutlined,
-  DesktopOutlined,
-  MailOutlined,
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
-  PieChartOutlined,
-} from '@ant-design/icons';
+import { AppstoreOutlined, MenuOutlined } from '@ant-design/icons';
+import { useConnect } from '@connect2ic/react';
 import type { MenuProps } from 'antd';
 import { Button, Menu } from 'antd';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { backend } from '../../../declarations/backend';
+import { IRustFrame } from '../../../models/IFrame';
+import * as styled from './DrawerMenu.styled';
 
 type MenuItem = Required<MenuProps>['items'][number];
+
+export interface MenuInfo {
+  key: string;
+  keyPath: string[];
+  /** @deprecated This will not support in future. You should avoid to use this */
+  item: React.ReactInstance;
+  domEvent: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>;
+}
 
 function getItem(
   label: React.ReactNode,
@@ -29,45 +34,64 @@ function getItem(
   } as MenuItem;
 }
 
-const items: MenuItem[] = [
-  getItem('Option 1', '1', <PieChartOutlined />),
-  getItem('Option 2', '2', <DesktopOutlined />),
-  getItem('Option 3', '3', <ContainerOutlined />),
-
-  getItem('Navigation One', 'sub1', <MailOutlined />, [
-    getItem('Option 5', '5'),
-    getItem('Option 6', '6'),
-    getItem('Option 7', '7'),
-    getItem('Option 8', '8'),
-  ]),
-
-  getItem('My Frames', 'my-frames', <AppstoreOutlined />, [getItem('1', '9')]),
-];
-
 export const DrawerMenu = () => {
-  const [collapsed, setCollapsed] = useState(false);
+  const { principal } = useConnect();
+  const [myFrames, setMyFrames] = useState<IRustFrame[]>([]);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const toggleCollapsed = () => {
-    setCollapsed(!collapsed);
+  const canisterId = searchParams.get('canisterId');
+
+  const items: MenuItem[] = [
+    getItem(
+      'My Frames',
+      'my-frames',
+      <AppstoreOutlined />,
+      myFrames.map((frame) =>
+        getItem(frame.id.toString(), frame.id.toString()),
+      ),
+    ),
+  ];
+
+  useEffect(() => {
+    if (!principal) {
+      return;
+    }
+    console.log(principal);
+
+    backend.get_frames_by_owner(principal).then((frames: any) => {
+      setMyFrames(frames);
+      console.log(frames);
+    });
+  }, [principal]);
+
+  const handleClick = (event: MenuInfo) => {
+    console.log(event);
+    navigate(`frames/${event.key}?canisterId=${canisterId}`);
   };
 
   return (
-    <div style={{ width: 256 }}>
-      <Button
-        type="primary"
-        onClick={toggleCollapsed}
-        style={{ marginBottom: 16 }}
+    <>
+      <Button icon={<MenuOutlined />} onClick={() => setIsDrawerOpen(true)} />
+      <styled.LeftDrawer
+        width={250}
+        title="FRAME CHAIN"
+        placement="left"
+        closable={false}
+        onClose={() => setIsDrawerOpen(false)}
+        open={isDrawerOpen}
+        key="left"
       >
-        {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-      </Button>
-      <Menu
-        defaultSelectedKeys={['1']}
-        defaultOpenKeys={['sub1']}
-        mode="inline"
-        theme="dark"
-        inlineCollapsed={collapsed}
-        items={items}
-      />
-    </div>
+        <Menu
+          style={{ width: '100%' }}
+          defaultSelectedKeys={['1']}
+          defaultOpenKeys={['sub1']}
+          onClick={(event: MenuInfo) => handleClick(event)}
+          mode="inline"
+          items={items}
+        />
+      </styled.LeftDrawer>
+    </>
   );
 };

@@ -19,17 +19,21 @@ export const AbsoluteImage = ({
   const [isShown, setIsShown] = useState(true);
 
   useEffect(() => {
-    backend
-      .get_frame_by_id(BigInt(0))
-      .then((frames) => setFrame(frames?.[0] as any));
+    if (!id) {
+      return;
+    }
 
-    //getFrameById(id)
-    //  .then((frame) => setFrame(frame))
-    //  .catch(console.error);
+    backend
+      .get_frame_by_id(BigInt(id))
+      .then((frames) => setFrame(frames?.[0] as any));
   }, [id]);
 
   useEffect(() => {
+    if (!frame?.children_ids[0]?.[0]) {
+      return;
+    }
     console.log(frame);
+    console.log('id', Number(frame?.children_ids[0][0]));
   }, [frame]);
 
   // Check is frame ready to be changed to a new Frame Chain
@@ -99,7 +103,11 @@ export const AbsoluteImage = ({
 
           {frame?.children_ids &&
             frame?.children_ids?.map((id) => (
-              <AbsoluteImage key={id} id={id} setFrameConfig={setFrameConfig} />
+              <AbsoluteImage
+                key={Number(id[0])}
+                id={Number(id[0])}
+                setFrameConfig={setFrameConfig}
+              />
             ))}
         </div>
       </AbsoluteImageContainer>

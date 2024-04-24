@@ -1,6 +1,6 @@
 use std::{cell::RefCell, collections::BTreeMap};
 
-use candid::CandidType;
+use candid::{CandidType, Principal};
 use serde::{Deserialize, Serialize};
 
 type FrameStore = BTreeMap<usize, Frame>;
@@ -8,13 +8,14 @@ type FrameStore = BTreeMap<usize, Frame>;
 thread_local! {
     pub static STATE: RefCell<FrameStore> = {
         let mut map = FrameStore::new();
-        map.insert(0, Frame {
-            id: 0,
+        map.insert(1, Frame {
+            id: 1,
             image_url: Some("https://img.freepik.com/free-photo/anime-style-house-architecture_23-2151064885.jpg?t=st=1713813753~exp=1713817353~hmac=8af8b1b1c0cc7258d68e70ba6c281573e57a90f187a80b6811a299fc6666681f&w=1380".into()),
             top: 0,
             left: 0,
             width: 500,
             height: 500,
+                        owner: Principal::from_text("lzs4l-u7x56-o6h6c-56uq2-ajxbo-hok4a-cuzzz-4rc7d-7roup-buzvz-eae").expect("Could not decode the principal."),
             children_ids: None,
         });
         RefCell::new(map)
@@ -29,6 +30,7 @@ pub struct Frame {
     left: u32,
     width: u32,
     height: u32,
+    owner: Principal,
     children_ids: Option<Vec<usize>>,
 }
 
@@ -55,6 +57,8 @@ pub struct InsertFrame {
     left: u32,
     width: u32,
     height: u32,
+    owner: String,
+    parent_id: usize,
 }
 
 #[ic_cdk::update]
@@ -65,21 +69,49 @@ pub fn insert_frame(frame: InsertFrame) -> usize {
             id,
             Frame {
                 id,
-                image_url: None,
+                image_url: Some("https://www.wallpaperflare.com/static/914/283/693/pixel-art-pixels-city-japan-wallpaper.jpg".into()),
                 top: frame.top,
                 left: frame.left,
                 width: frame.width,
                 height: frame.height,
+                owner: Principal::from_text(frame.owner).expect("Could not decode the principal."),
                 children_ids: None,
             },
         )
     });
-    id
+
+    let parent_arr = vec![id];
+
+    // РОДИТЕЛИ ПЕРЕПИСЫВАЮТСЯ КАЖДЫЙ РАЗ, ПЕРЕДЕЛАТЬ
+    STATE.with(|state| {
+        state
+            .borrow_mut()
+            .entry(frame.parent_id)
+            .and_modify(|frame| frame.children_ids = Some(parent_arr));
+    });
+
+    return id;
 }
 
 #[ic_cdk::query]
 pub fn get_frame_by_id(id: usize) -> Option<Frame> {
     STATE.with(|state| state.borrow().get(&id).cloned())
+}
+
+#[ic_cdk::query]
+pub fn get_frames_by_owner(principal_text: String) -> Vec<Frame> {
+    STATE.with(|state| {
+        state
+            .borrow()
+            .values()
+            .filter(|frame| {
+                frame.owner
+                    == Principal::from_text(&principal_text)
+                        .expect("Could not decode the principal.")
+            })
+            .cloned()
+            .collect()
+    })
 }
 
 #[derive(CandidType, Deserialize)]

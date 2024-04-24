@@ -5,6 +5,7 @@ type Frame = record {
   left : nat32;
   width : nat32;
   height : nat32;
+  owner : principal;
   children_ids : opt vec nat64;
 };
 
@@ -13,6 +14,8 @@ type InsertFrame = record {
   left : nat32;
   width : nat32;
   height : nat32;
+  owner : text;
+  parent_id : nat64;
 };
 
 type FrameWithOptionalFields = record {
@@ -21,6 +24,7 @@ type FrameWithOptionalFields = record {
   left : opt nat32;
   width : opt nat32;
   height : opt nat32;
+  owner : principal;
   children_ids : opt vec nat64;
 };
 
@@ -28,5 +32,6 @@ service : {
   insert_frame : (InsertFrame) -> (nat64);
   get_frame_by_id : (nat64) -> (opt Frame) query;
   update_fields_in_frame_by_id : (nat64, FrameWithOptionalFields) -> ();
+  get_frames_by_owner : (text) -> (vec Frame) query;
   delete_frame_by_id : (nat64) -> ();
 };

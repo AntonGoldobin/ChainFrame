@@ -14,8 +14,8 @@ export const ImageContainer = styled.img`
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100%;
-  height: 100%;
+  width: 1000px;
+  height: 1000px;
   background-color: #1a1a1a;
   border: 1px solid #333;
   border-radius: 5px;

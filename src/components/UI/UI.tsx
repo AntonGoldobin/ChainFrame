@@ -1,14 +1,10 @@
-import { MenuOutlined } from '@ant-design/icons';
 import { ConnectButton, ConnectDialog, useConnect } from '@connect2ic/react';
-import { Button, Drawer } from 'antd';
-import { useState } from 'react';
+import { Button } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { DrawerMenu } from './DrawerMenu/DrawerMenu';
 import * as styled from './UI.styled';
 
 export const UI = () => {
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-
   const { isConnected, principal, activeProvider } = useConnect({
     onConnect: () => {
       console.log('connected');
@@ -28,10 +24,8 @@ export const UI = () => {
     <>
       <styled.TopBar>
         <styled.TopBarBlock>
-          <Button
-            icon={<MenuOutlined />}
-            onClick={() => setIsDrawerOpen(true)}
-          />
+          {/*Drawer*/}
+          <DrawerMenu />
         </styled.TopBarBlock>
 
         <styled.TopBarBlock>
@@ -40,17 +34,6 @@ export const UI = () => {
           {isConnected && <Button onClick={() => editFrame()}>Edit</Button>}
         </styled.TopBarBlock>
       </styled.TopBar>
-      {/*Drawer*/}
-      <Drawer
-        title="FRAME CHAIN"
-        placement="left"
-        closable={false}
-        onClose={() => setIsDrawerOpen(false)}
-        open={isDrawerOpen}
-        key="left"
-      >
-        <DrawerMenu />
-      </Drawer>
     </>
   );
 };
