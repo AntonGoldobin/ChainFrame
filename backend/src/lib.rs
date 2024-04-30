@@ -23,7 +23,7 @@ thread_local! {
     };
 }
 
-#[derive(CandidType, Serialize, Deserialize, Clone)]
+#[derive(CandidType, Serialize, Deserialize, Clone, PartialEq, Debug)]
 pub struct Frame {
     id: usize,
     name: String,
@@ -53,16 +53,16 @@ pub fn post_upgrade() {
     STATE.with(|state| state.borrow_mut().extend(deserialized_frame_store))
 }
 
-#[derive(CandidType, Deserialize)]
+#[derive(CandidType, Deserialize, Clone)]
 pub struct InsertFrame {
+    name: String,
+    image_url: String,
+    owner: Principal,
+    parent_id: usize,
     top: u32,
     left: u32,
     width: u32,
     height: u32,
-    owner: String,
-    parent_id: usize,
-    name: String,
-    image_url: String,
 }
 
 #[ic_cdk::update]
@@ -78,24 +78,21 @@ pub fn insert_frame(frame: InsertFrame) -> usize {
                 left: frame.left,
                 width: frame.width,
                 height: frame.height,
-                owner: Principal::from_text(frame.owner).expect("Could not decode the principal."),
+                owner: frame.owner,
                 children_ids: None,
                 name: frame.name,
             },
         )
     });
-
-    let parent_arr = vec![id];
-
-    // РОДИТЕЛИ ПЕРЕПИСЫВАЮТСЯ КАЖДЫЙ РАЗ, ПЕРЕДЕЛАТЬ
     STATE.with(|state| {
-        state
-            .borrow_mut()
-            .entry(frame.parent_id)
-            .and_modify(|frame| frame.children_ids = Some(parent_arr));
+        let mut borrowed = state.borrow_mut();
+        borrowed.entry(frame.parent_id).and_modify(|frame| {
+            if let Some(children_ids) = frame.children_ids.as_mut() {
+                children_ids.push(id)
+            }
+        });
     });
-
-    return id;
+    id
 }
 
 #[ic_cdk::query]
@@ -104,16 +101,12 @@ pub fn get_frame_by_id(id: usize) -> Option<Frame> {
 }
 
 #[ic_cdk::query]
-pub fn get_frames_by_owner(principal_text: String) -> Vec<Frame> {
+pub fn get_frames_by_owner(principal: Principal) -> Vec<Frame> {
     STATE.with(|state| {
         state
             .borrow()
             .values()
-            .filter(|frame| {
-                frame.owner
-                    == Principal::from_text(&principal_text)
-                        .expect("Could not decode the principal.")
-            })
+            .filter(|frame| frame.owner == principal)
             .cloned()
             .collect()
     })
@@ -121,13 +114,13 @@ pub fn get_frames_by_owner(principal_text: String) -> Vec<Frame> {
 
 #[derive(CandidType, Deserialize)]
 pub struct FrameWithOptionalFields {
+    name: Option<String>,
     image_url: Option<String>,
     top: Option<u32>,
     left: Option<u32>,
     width: Option<u32>,
     height: Option<u32>,
     children_ids: Option<Vec<usize>>,
-    name: Option<String>,
 }
 
 #[ic_cdk::update]
@@ -137,7 +130,9 @@ pub fn update_fields_in_frame_by_id(
 ) {
     STATE.with(|state| {
         state.borrow_mut().entry(id).and_modify(|frame| {
-            frame.image_url = frame_with_optional_fields.image_url;
+            if let Some(image_url) = frame_with_optional_fields.image_url {
+                frame.image_url = Some(image_url)
+            }
             if let Some(top) = frame_with_optional_fields.top {
                 frame.top = top
             }
@@ -153,24 +148,27 @@ pub fn update_fields_in_frame_by_id(
             if let Some(name) = frame_with_optional_fields.name {
                 frame.name = name
             }
-            frame.children_ids = frame_with_optional_fields.children_ids
+            if let Some(children_ids) = frame_with_optional_fields.children_ids {
+                frame.children_ids = Some(children_ids)
+            }
         });
     })
 }
 
 #[derive(CandidType, Deserialize)]
-pub struct FrameWithNameImageFields {
-    image_url: String,
+pub struct FrameWithNameAndImageFields {
     name: String,
+    image_url: Option<String>,
 }
 
 #[ic_cdk::update]
-pub fn edit_frame_by_id(id: usize, frame_fields: FrameWithNameImageFields) {
+pub fn edit_frame_by_id(id: usize, frame_with_name_and_image_fields: FrameWithNameAndImageFields) {
     STATE.with(|state| {
         state.borrow_mut().entry(id).and_modify(|frame| {
-            frame.image_url = Some(frame_fields.image_url);
-
-            frame.name = frame_fields.name
+            frame.name = frame_with_name_and_image_fields.name;
+            if let Some(image_url) = frame_with_name_and_image_fields.image_url {
+                frame.image_url = Some(image_url)
+            }
         });
     })
 }
@@ -180,4 +178,112 @@ pub fn delete_frame_by_id(id: usize) {
     STATE.with(|state| {
         state.borrow_mut().remove(&id);
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::OnceLock;
+
+    use candid::Principal;
+
+    use crate::{
+        delete_frame_by_id, get_frame_by_id, get_frames_by_owner, insert_frame,
+        update_fields_in_frame_by_id, Frame, FrameWithOptionalFields, InsertFrame,
+    };
+
+    static INSERT_FRAME: OnceLock<InsertFrame> = OnceLock::new();
+
+    #[test]
+    fn insert_and_delete_frame() {
+        INSERT_FRAME.get_or_init(|| InsertFrame {
+            name: "some_name".into(),
+            parent_id: 1usize,
+            owner: Principal::anonymous(),
+            image_url: "ya.ru/images".into(),
+            top: 0,
+            left: 0,
+            width: 0,
+            height: 0,
+        });
+        let id = insert_frame(INSERT_FRAME.get().cloned().unwrap());
+        delete_frame_by_id(id)
+    }
+
+    #[test]
+    fn insert_and_get_frame() {
+        let id = insert_frame(INSERT_FRAME.get().cloned().unwrap());
+        let first_frame = get_frame_by_id(id).unwrap();
+        let second_frame = Frame {
+            id,
+            name: "some_name".into(),
+            image_url: Some("ya.ru/images".into()),
+            top: 0,
+            left: 0,
+            width: 0,
+            height: 0,
+            owner: Principal::anonymous(),
+            children_ids: None,
+        };
+        assert_eq!(first_frame, second_frame)
+    }
+    #[test]
+    fn insert_and_update_frame() {
+        let id = insert_frame(INSERT_FRAME.get().cloned().unwrap());
+        update_fields_in_frame_by_id(
+            id,
+            FrameWithOptionalFields {
+                name: Some("some_name2".into()),
+                top: Some(1),
+                left: Some(1),
+                width: None,
+                height: None,
+                image_url: None,
+                children_ids: None,
+            },
+        );
+        let first_frame = get_frame_by_id(id).unwrap();
+        let second_frame = Frame {
+            name: "some_name2".into(),
+            id,
+            image_url: Some("ya.ru/images".into()),
+            top: 1,
+            left: 1,
+            width: 0,
+            height: 0,
+            owner: Principal::anonymous(),
+            children_ids: None,
+        };
+        assert_eq!(first_frame, second_frame)
+    }
+    #[test]
+    fn insert_many_frames_and_get_by_owner() {
+        let first_id = insert_frame(INSERT_FRAME.get().cloned().unwrap());
+        let second_id = insert_frame(INSERT_FRAME.get().cloned().unwrap());
+        let first_frames = get_frames_by_owner(Principal::anonymous());
+        let second_frames = vec![
+            Frame {
+                id: first_id,
+                name: "some_name".into(),
+                image_url: Some("ya.ru/images".into()),
+                top: 0,
+                left: 0,
+                width: 0,
+                height: 0,
+                owner: Principal::anonymous(),
+                children_ids: None,
+            },
+            Frame {
+                id: second_id,
+                name: "some_name".into(),
+                image_url: Some("ya.ru/images".into()),
+                top: 0,
+                left: 0,
+                width: 0,
+                height: 0,
+                owner: Principal::anonymous(),
+                children_ids: None,
+            },
+        ];
+        assert_eq!(first_frames, second_frames)
+    }
 }

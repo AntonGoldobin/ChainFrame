@@ -32,16 +32,16 @@ type FrameWithOptionalFields = record {
   name : opt text;
 };
 
-type FrameEditFields = record {
-  image_url : text;
+type FrameWithNameAndImageFields = record {
   name : text;
+  image_url : opt text;
 };
 
 service : {
   insert_frame : (InsertFrame) -> (nat64);
   get_frame_by_id : (nat64) -> (opt Frame) query;
   update_fields_in_frame_by_id : (nat64, FrameWithOptionalFields) -> ();
-  edit_frame_by_id : (nat64, FrameEditFields) -> ();
+  edit_frame_by_id : (nat64, FrameWithNameAndImageFields) -> ();
   get_frames_by_owner : (text) -> (vec Frame) query;
   delete_frame_by_id : (nat64) -> ();
 };
