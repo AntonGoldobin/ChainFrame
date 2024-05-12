@@ -1,7 +1,7 @@
 {
-  "name": "vite-react-ic-rust",
+  "name": "frame-chain",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "setup": "npm i && dfx canister create backend && dfx generate backend && dfx deploy",
@@ -30,6 +30,7 @@
     "react-draggable": "^4.4.6",
     "react-image-crop": "^11.0.5",
     "react-router-dom": "^6.22.2",
+    "react-test-renderer": "^18.3.1",
     "sort-by": "^1.2.0",
     "styled-components": "^6.1.8"
   },
@@ -41,6 +42,7 @@
     "@testing-library/react": "^14.0.0",
     "@types/react": "^18.2.79",
     "@types/react-dom": "^18.2.25",
+    "@types/react-test-renderer": "^18.3.0",
     "@vitejs/plugin-react": "^2.2.0",
     "assert": "2.0.0",
     "buffer": "6.0.3",

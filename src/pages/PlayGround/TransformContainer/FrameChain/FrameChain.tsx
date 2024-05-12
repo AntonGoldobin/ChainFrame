@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction, useState } from 'react';
-import { zoomConfig } from '../../config/zoomConfig';
-import { useZoom } from '../../hooks/useZoom';
-import { AbsoluteImage } from '../AbsoluteImage/AbsoluteImage';
+import { zoomConfig } from '../../../../config/zoomConfig';
+import { useZoom } from '../../../../hooks/useZoom';
+import { AbsoluteImage } from './AbsoluteImage/AbsoluteImage';
 
 export interface IFrameChainProps {
   firstFrameId: number;
@@ -12,6 +12,7 @@ export interface IFrameChainProps {
 
 export interface IFrameConfig {
   setFrameConfig: Dispatch<SetStateAction<IFrameChainProps>>;
+  countRenderedFrame: (id: number, frameConfig: IFrameChainProps) => void;
 }
 
 export const FrameChain = ({
@@ -20,6 +21,7 @@ export const FrameChain = ({
   initTranslateX,
   initTranslateY,
   setFrameConfig,
+  countRenderedFrame,
 }: IFrameChainProps & IFrameConfig) => {
   const [isZoomEnabled, setIsZoomEnabled] = useState(true);
 
@@ -48,7 +50,11 @@ export const FrameChain = ({
           }}
         >
           {/*Content*/}
-          <AbsoluteImage id={firstFrameId} setFrameConfig={setFrameConfig} />
+          <AbsoluteImage
+            id={firstFrameId}
+            setFrameConfig={setFrameConfig}
+            countRenderedFrame={countRenderedFrame}
+          />
         </div>
       </div>
     </>

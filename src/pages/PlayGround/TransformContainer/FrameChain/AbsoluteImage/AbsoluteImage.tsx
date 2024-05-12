@@ -1,18 +1,20 @@
 import { useEffect, useRef, useState } from 'react';
-import { zoomConfig } from '../../config/zoomConfig';
-import { backend } from '../../declarations/backend';
-import { IFrame } from '../../models/IFrame';
-import { IFrameConfig } from '../FrameChain/FrameChain';
-import ImageCanvas from '../ImageCanvas/ImageCanvas';
+import ImageCanvas from '../../../../../components/ImageCanvas/ImageCanvas';
+import { zoomConfig } from '../../../../../config/zoomConfig';
+import { backend } from '../../../../../declarations/backend';
+import { IFrame } from '../../../../../models/IFrame';
+import { IFrameChainProps, IFrameConfig } from '../FrameChain';
 import { AbsoluteImageContainer } from './AbsoluteImage.styled';
 
 export interface IAbsoluteImageProps {
   id: number;
+  countRenderedFrame: (id: number, frameConfig: IFrameChainProps) => void;
 }
 
 export const AbsoluteImage = ({
   id,
   setFrameConfig,
+  countRenderedFrame,
 }: IAbsoluteImageProps & IFrameConfig) => {
   const ref = useRef<HTMLDivElement>(null);
   const [frame, setFrame] = useState<IFrame | null>(null);
@@ -29,11 +31,7 @@ export const AbsoluteImage = ({
   }, [id]);
 
   useEffect(() => {
-    if (!frame?.children_ids[0]?.[0]) {
-      return;
-    }
     console.log(frame);
-    console.log('id', Number(frame?.children_ids[0][0]));
   }, [frame]);
 
   // Check is frame ready to be changed to a new Frame Chain
@@ -51,16 +49,10 @@ export const AbsoluteImage = ({
     const isElementFillsAllY =
       curFrameBounding.height + curFrameBounding.top > clientHeight;
 
-    console.log(curFrameBounding.width + curFrameBounding?.left, clientWidth);
-    console.log(isElementOnLeft, isElementFillsAllX, isElementFillsAllY);
     return isElementOnLeft && isElementFillsAllX && isElementFillsAllY;
   };
 
   const checkRefSize = () => {
-    if (id !== 4) {
-      return;
-    }
-
     const curFrameBounding = ref.current?.getBoundingClientRect();
     const curFrameUnscaledWidth = ref.current?.offsetWidth;
 
@@ -70,13 +62,9 @@ export const AbsoluteImage = ({
       return;
     }
 
+    // Count size of rendered frames, if more than 6, rerender whole screen
     if (isFrameBiggerThanDisplay()) {
-      console.log('Changed!');
-      console.log(
-        'scale should be:',
-        curFrameBounding.width / curFrameUnscaledWidth,
-      );
-      setFrameConfig({
+      countRenderedFrame(id, {
         firstFrameId: 0,
         initTranslateX: curFrameBounding?.left,
         initTranslateY: curFrameBounding?.top,
@@ -102,11 +90,12 @@ export const AbsoluteImage = ({
           {isShown && <ImageCanvas imageUrl={frame.image_url[0]} />}
 
           {frame?.children_ids &&
-            frame?.children_ids?.map((id) => (
+            frame?.children_ids?.map((childId) => (
               <AbsoluteImage
-                key={Number(id[0])}
-                id={Number(id[0])}
+                key={Number(childId[0])}
+                id={Number(childId[0])}
                 setFrameConfig={setFrameConfig}
+                countRenderedFrame={countRenderedFrame}
               />
             ))}
         </div>

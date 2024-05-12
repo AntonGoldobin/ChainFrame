@@ -57,7 +57,7 @@ pub fn post_upgrade() {
 pub struct InsertFrame {
     name: String,
     image_url: String,
-    owner: Principal,
+    owner: String,
     parent_id: usize,
     top: u32,
     left: u32,
@@ -78,7 +78,7 @@ pub fn insert_frame(frame: InsertFrame) -> usize {
                 left: frame.left,
                 width: frame.width,
                 height: frame.height,
-                owner: frame.owner,
+                owner: Principal::from_text(frame.owner).expect("Could not decode the principal."),
                 children_ids: None,
                 name: frame.name,
             },
@@ -101,12 +101,16 @@ pub fn get_frame_by_id(id: usize) -> Option<Frame> {
 }
 
 #[ic_cdk::query]
-pub fn get_frames_by_owner(principal: Principal) -> Vec<Frame> {
+pub fn get_frames_by_owner(principal_text: String) -> Vec<Frame> {
     STATE.with(|state| {
         state
             .borrow()
             .values()
-            .filter(|frame| frame.owner == principal)
+            .filter(|frame| {
+                frame.owner
+                    == Principal::from_text(&principal_text)
+                        .expect("Could not decode the principal.")
+            })
             .cloned()
             .collect()
     })
@@ -198,7 +202,7 @@ mod tests {
         INSERT_FRAME.get_or_init(|| InsertFrame {
             name: "some_name".into(),
             parent_id: 1usize,
-            owner: Principal::anonymous(),
+            owner: Principal::anonymous().to_string(),
             image_url: "ya.ru/images".into(),
             top: 0,
             left: 0,
@@ -259,7 +263,7 @@ mod tests {
     fn insert_many_frames_and_get_by_owner() {
         let first_id = insert_frame(INSERT_FRAME.get().cloned().unwrap());
         let second_id = insert_frame(INSERT_FRAME.get().cloned().unwrap());
-        let first_frames = get_frames_by_owner(Principal::anonymous());
+        let first_frames = get_frames_by_owner(Principal::anonymous().to_string());
         let second_frames = vec![
             Frame {
                 id: first_id,

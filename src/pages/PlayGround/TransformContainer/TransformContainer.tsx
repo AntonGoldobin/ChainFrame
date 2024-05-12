@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import Draggable from 'react-draggable';
-import { FrameChain, IFrameChainProps } from '../FrameChain/FrameChain';
+import { FrameChain, IFrameChainProps } from './FrameChain/FrameChain';
 
 export const TransformContainer = () => {
   const [frameConfig, setFrameConfig] = useState<IFrameChainProps>({
@@ -10,11 +10,32 @@ export const TransformContainer = () => {
     initTranslateY: 200,
   });
 
+  const [renderedFramesIds, setRenderedFramesIds] = useState<number[]>([]);
+
+  const countRenderedFrame = (
+    frameId: number,
+    frameConfig: IFrameChainProps,
+  ) => {
+    if (renderedFramesIds.find((id) => id === frameId)) {
+      return;
+    }
+
+    if (setRenderedFramesIds.length > 6) {
+      setFrameConfig(frameConfig);
+      setRenderedFramesIds([frameId]);
+      console.log('Changed!');
+      return;
+    }
+
+    setRenderedFramesIds((prev) => [...prev, frameId]);
+  };
+
   const getFrameComponent = useCallback(
     () => (
       <FrameChain
         {...frameConfig}
         setFrameConfig={setFrameConfig}
+        countRenderedFrame={countRenderedFrame}
         key={frameConfig.initScale}
       />
     ),
